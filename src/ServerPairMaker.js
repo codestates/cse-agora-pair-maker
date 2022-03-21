@@ -1,23 +1,16 @@
-const { createServer } = require("http");
 const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
-
-console.log(port);
 require("dotenv").config();
 const cors = require("cors");
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
 
-const { createEventAdapter } = require("@slack/events-api");
 const { WebClient, ErrorCode } = require("@slack/web-api");
-const { scheduleJob } = require("node-schedule");
 const schedule = require("node-schedule");
 
 const conversationId = "C026MQ2GV2T";
-const slackEvents = createEventAdapter(process.env.SLACK_SECRET);
 const token = process.env.SLACK_BOT_TOKEN;
-const channel = "C026MQ2GV2T";
 const web = new WebClient(token);
 
 app.use(express.json());
