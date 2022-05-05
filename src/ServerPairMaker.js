@@ -26,23 +26,6 @@ app.get("/", (req, res, next) => {
   res.send("server running ");
 });
 
-app.post("/", (req, res) => {
-  if (req.body.command.split("/")[1] === "페어") {
-    res.send(`금주의 아고라 페어는 \n${pairList}\n입니다`);
-  } else if (req.body.command.split("/")[1] === "제외") {
-    excluded.push(req.body.text);
-    const rest = userList.filter((user) => !excluded.includes(user));
-    res.send(
-      `${req.body.text}(은/는) 제외되었습니다. \n전체 명단은 [${rest}]입니다`
-    );
-  } else {
-    res.end("해당하는 명령어가 없습니다");
-  }
-});
-
-const userList = await getUserList();
-const pairList = await makePair(userList);
-
 let excluded = [];
 
 const getUserList = async () => {
@@ -62,7 +45,7 @@ const getUserList = async () => {
       ) {
         usernames.push(username.user.real_name);
       }
-    }/
+    }
     return usernames;
   } catch (error) {
     if (error.code === ErrorCode.PlatformError) {
@@ -107,20 +90,43 @@ const makePair = (usernames) => {
   }
 };
 
-const noticePair = async () => {
-  try {
-    await web.chat.postMessage({
-      channel: cseChannelId,
-      text: `이번 주 아고라 페어 명단입니다!\n${pairList}\n서로 힘을 모아 좋은 답변을 해주세요.`,
+getUserList()
+  .then((userList) => {
+    const pairList = makePair(userList);
+
+    app.post("/", (req, res) => {
+      if (req.body.command.split("/")[1] === "페어") {
+        res.send(`금주의 아고라 페어는 \n${pairList}\n입니다`);
+      } else if (req.body.command.split("/")[1] === "제외") {
+        excluded.push(req.body.text);
+        const rest = userList.filter((user) => !excluded.includes(user));
+        res.send(
+          `${req.body.text}(은/는) 제외되었습니다. \n전체 명단은 [${rest}]입니다`
+        );
+      } else {
+        res.end("해당하는 명령어가 없습니다");
+      }
     });
-    await web.chat.postMessage({
-      channel: agoraChannelId,
-      text: `이번 주 아고라 페어 명단입니다!\n${pairList}\n서로 힘을 모아 좋은 답변을 해주세요.`,
-    });
-  } catch (err) {
+
+    const noticePair = async () => {
+      try {
+        await web.chat.postMessage({
+          channel: cseChannelId,
+          text: `이번 주 아고라 페어 명단입니다!\n${pairList}\n서로 힘을 모아 좋은 답변을 해주세요.`,
+        });
+        await web.chat.postMessage({
+          channel: agoraChannelId,
+          text: `이번 주 아고라 페어 명단입니다!\n${pairList}\n서로 힘을 모아 좋은 답변을 해주세요.`,
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    schedule.scheduleJob("50 01 * * mon", noticePair);
+  })
+  .catch((err) => {
     console.log(err);
-  }
-};
+  });
 
 const resetExcluded = () => {
   excluded = [];
@@ -144,7 +150,6 @@ const resetExcluded = () => {
 // 2. /제외 는 1주일만 제외 시킴
 // 3. optional /추가 제외 된 구성원을 다시 추가
 
-schedule.scheduleJob("50 01 * * mon", noticePair);
 schedule.scheduleJob("10 02 * * mon", resetExcluded);
 
 app.listen(port, () => console.log(`server is running at ${port}`));
