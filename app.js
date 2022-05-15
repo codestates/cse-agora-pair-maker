@@ -175,12 +175,9 @@ const resetIsShuffled = () => {
   isShuffled = false;
 };
 
-schedule.scheduleJob(
-  "50 01 * * mon",
-  noticePair,
-  resetExcluded,
-  resetIsShuffled
-);
+schedule.scheduleJob("49 01 * * mon", resetIsShuffled);
+schedule.scheduleJob("50 01 * * mon", noticePair);
+schedule.scheduleJob("51 01 * * mon", resetExcluded);
 
 (async () => {
   await app.start();
