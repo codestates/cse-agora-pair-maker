@@ -1,6 +1,5 @@
 require("dotenv").config();
 const { App } = require("@slack/bolt");
-const { ConsoleLogger } = require("@slack/logger");
 const { WebClient, ErrorCode } = require("@slack/web-api");
 const schedule = require("node-schedule");
 const token = process.env.SLACK_BOT_TOKEN;
@@ -9,14 +8,9 @@ const cseChannelId = "C026MQ2GV2T";
 const agoraChannelId = "C01TALAJ7QU";
 const web = new WebClient(token);
 
-// const { FileInstallationStore } = require("@slack/oauth");
-
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   signingSecret: process.env.SLACK_SIGNING_SECRET,
-  // clientId: process.env.SLACK_CLIENT_ID,
-  // clientSecret: process.env.SLACK_CLIENT_SECRET,
-  // stateSecret: "my-state-secret",
   scopes: [
     "channels:history",
     "chat:write",
@@ -25,7 +19,6 @@ const app = new App({
     "channels:read",
     "users:read",
   ],
-  // installationStore: new FileInstallationStore(),
   socketMode: true,
   appToken: process.env.SLACK_APP_TOKEN,
   port: process.env.PORT || 3000,
@@ -46,6 +39,8 @@ function randomEmojis() {
 }
 
 const makePair = async function () {
+  console.log(isShuffled, "isShuffled");
+  console.log(excluded, "excluded");
   if (!isShuffled) {
     userList = await getUserList();
     pairList = shuffleUsernames(userList);
@@ -138,7 +133,6 @@ function excludeUser(user) {
 
 app.command("/제외", async ({ command, ack, respond }) => {
   await ack();
-  console.log(command.text, "text");
 
   const rest = excludeUser(command.text);
   //!TODO: 여러 명 한 번에 제외 기능 추가
