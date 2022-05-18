@@ -1,6 +1,6 @@
 require("dotenv").config();
 const { App } = require("@slack/bolt");
-const { WebClient, ErrorCode } = require("@slack/web-api");
+const { WebClient } = require("@slack/web-api");
 const schedule = require("node-schedule");
 const token = process.env.SLACK_BOT_TOKEN;
 
@@ -39,8 +39,6 @@ function randomEmojis() {
 }
 
 const makePair = async function () {
-  console.log(isShuffled, "isShuffled");
-  console.log(excluded, "excluded");
   if (!isShuffled) {
     userList = await getUserList();
     pairList = shuffleUsernames(userList);
@@ -136,7 +134,11 @@ app.command("/제외", async ({ command, ack, respond }) => {
 
   const rest = excludeUser(command.text);
   //!TODO: 여러 명 한 번에 제외 기능 추가
-  if (rest) {
+  if (excluded.includes(command.text)) {
+    await respond(
+      `${command.text}(은/는) 이미 제외되었습니다 \n전체 명단은 [${rest}]입니다`
+    );
+  } else if (rest) {
     await respond(
       `${command.text}(은/는) 제외되었습니다. \n전체 명단은 [${rest}]입니다`
     );
